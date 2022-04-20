@@ -19,7 +19,7 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 public class Film {
-    private long id;
+    private Long id;
 
     @NotBlank
     private String name;

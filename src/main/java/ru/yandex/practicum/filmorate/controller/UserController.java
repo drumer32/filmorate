@@ -27,10 +27,10 @@ import java.time.LocalDate;
 public class UserController {
     private final static Logger log = LoggerFactory.getLogger(UserController.class);
 
-    private Map<Integer, User> users = new HashMap<>();
+    private Map<Long, User> users = new HashMap<>();
 
     @GetMapping("/users")
-    public Map<Integer, User> findAllUsers() {
+    public Map<Long, User> findAllUsers() {
         return users;
     }
 

@@ -21,10 +21,10 @@ import java.time.LocalDate;
 public class FilmController {
     private final static Logger log = LoggerFactory.getLogger(FilmController.class);
 
-    private Map<Integer, Film> films = new HashMap<>();
+    private Map<Long, Film> films = new HashMap<>();
 
     @GetMapping("/films")
-    public Map<Integer, Film> findAll() {
+    public Map<Long, Film> findAll() {
         return films;
     }
 
