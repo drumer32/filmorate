@@ -29,33 +29,32 @@ public class FilmController {
     }
 
     @PostMapping(value = "/films")
-    public Film create(@Validated @RequestBody Film film) {
+    public void create(@Validated @RequestBody Film film) {
         if (!validation(film)) {
             throw new ValidationException("Ошибка валидации. Проверьте введенные данные");
         } else {
             films.put(film.getId(), film);
+            log.info("Фильм добавлен {}", film);
         }
-        log.info("Фильм добавлен {}", film);
-        return film;
     }
 
     @PutMapping(value = "/films")
-    public Film update(@Validated @RequestBody Film film) {
+    public void update(@Validated @RequestBody Film film) {
         if (!validation(film)) {
             throw new ValidationException("Ошибка валидации. Проверьте введенные данные");
         } else {
-            try {
+            if (films.containsKey(film.getId())) {
                 Film oldFilm = films.get(film.getId());
                 oldFilm.setName(film.getName());
                 oldFilm.setDescription(film.getDescription());
                 oldFilm.setDuration(film.getDuration());
                 oldFilm.setReleaseDate(film.getReleaseDate());
-            } catch (NullPointerException e) {
-                throw new ValidationException("Данного фильма пока что нет в базе");
+                log.info("Фильм обновлен {}", film);
+            } else {
+                System.out.println("Данного фильма пока что нет в базе");
+                log.info("Фильм не найден {}", film);
             }
         }
-        log.info("Фильм обновлен {}", film);
-        return film;
     }
 
     /**

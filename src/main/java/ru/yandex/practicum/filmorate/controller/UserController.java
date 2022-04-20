@@ -35,32 +35,31 @@ public class UserController {
     }
 
     @PostMapping(value = "/users")
-    public User create(@Validated @RequestBody User user) {
+    public void create(@Validated @RequestBody User user) {
         if (!validation(user)) {
             throw new ValidationException("Ошибка валидации. Проверьте введенные данные");
         } else {
             users.put(user.getUserId(), user);
+            log.info("Пользователь добавлен {}", user);
         }
-        log.info("Пользователь добавлен {}", user);
-        return user;
     }
 
     @PutMapping(value = "/users")
-    public User update(@Validated @RequestBody User user) {
+    public void update(@Validated @RequestBody User user) {
         if (!validation(user)) {
             throw new ValidationException("Ошибка валидации. Проверьте введенные данные");
         } else {
-            try {
+            if (users.containsKey(user.getUserId())) {
                 User oldUser = users.get(user.getUserId());
                 oldUser.setName(user.getName());
                 oldUser.setEmail(user.getEmail());
                 oldUser.setLogin(user.getLogin());
                 oldUser.setBirthday(user.getBirthday());
-            } catch (NullPointerException e) {
-                throw new ValidationException("Пользователь не найден");
+                log.info("Пользователь обновлен {}", user);
+            } else {
+                System.out.println("Пользователь не найден");
+                log.info("Пользователь не найден {}", user);
             }
-            log.info("Пользователь обновлен {}", user);
-            return user;
         }
     }
 
