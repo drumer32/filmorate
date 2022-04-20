@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,11 +11,8 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.time.LocalDate;
 
 /**
@@ -24,8 +22,8 @@ import java.time.LocalDate;
  */
 
 @RestController
+@Slf4j
 public class UserController {
-    private final static Logger log = LoggerFactory.getLogger(UserController.class);
 
     private Map<Integer, User> users = new HashMap<>();
 
@@ -35,32 +33,42 @@ public class UserController {
     }
 
     @PostMapping(value = "/users")
-    public void create(@Validated @RequestBody User user) {
-        if (!validation(user)) {
-            throw new ValidationException("Ошибка валидации. Проверьте введенные данные");
-        } else {
+    public String create(@Validated @RequestBody User user) {
+        String response = "";
+        try {
+            validation(user);
             users.put(user.getUserId(), user);
+            response = ("Пользователь " + user.getUserId() + " добавлен");
             log.info("Пользователь добавлен {}", user);
+        } catch (ValidationException e) {
+            log.info(e.getMessage() + user);
+            response = e.getMessage();
         }
+        return response;
     }
 
     @PutMapping(value = "/users")
-    public void update(@Validated @RequestBody User user) {
-        if (!validation(user)) {
-            throw new ValidationException("Ошибка валидации. Проверьте введенные данные");
-        } else {
+    public String update(@Validated @RequestBody User user) throws ValidationException {
+        String response = "";
+        try {
+            validation(user);
             if (users.containsKey(user.getUserId())) {
                 User oldUser = users.get(user.getUserId());
                 oldUser.setName(user.getName());
                 oldUser.setEmail(user.getEmail());
                 oldUser.setLogin(user.getLogin());
                 oldUser.setBirthday(user.getBirthday());
+                response = ("Пользователь c id " + user.getUserId() + " обновлен");
                 log.info("Пользователь обновлен {}", user);
             } else {
-                System.out.println("Пользователь не найден");
+                response = "Пользователь не найден";
                 log.info("Пользователь не найден {}", user);
             }
+        } catch (ValidationException e) {
+            log.info(e.getMessage() + user);
+            response = e.getMessage();
         }
+        return response;
     }
 
     /**
@@ -69,16 +77,16 @@ public class UserController {
      * имя для отображения может быть пустым — в таком случае будет использован логин;
      * дата рождения не может быть в будущем.
      */
-    private boolean validation(User user) {
+    private void validation(User user) throws ValidationException {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
-            return false;
+            throw new ValidationException("Имя не должно быть пустым");
         } else if (!user.getEmail().contains("@")) {
-            return false;
+            throw new ValidationException("Адрес email веден некорректно");
         } else if (user.getLogin().isBlank() || user.getLogin().contains(" ")) {
-            return false;
+            throw new ValidationException("Логин не может быть пустым или содержать пробелы");
         } else if (user.getBirthday().isAfter(LocalDate.now())) {
-            return false;
-        } else return true;
+            throw new ValidationException("Дата рождения должна быть не позже " + LocalDate.now());
+        }
     }
 }

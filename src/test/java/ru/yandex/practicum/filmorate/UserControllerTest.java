@@ -33,14 +33,14 @@ public class UserControllerTest {
     }
 
     @Test
-    void userCreationTest() {
+    void userCreationTest() throws ValidationException {
         userController.create(user);
         System.out.println(userController.findAllUsers());
         Assertions.assertEquals(1, userController.findAllUsers().size());
     }
 
     @Test
-    void userUpdateTest() {
+    void userUpdateTest() throws ValidationException {
         User newUser = new User(
                 1,
                 "email@email.com",

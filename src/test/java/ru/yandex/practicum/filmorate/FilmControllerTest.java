@@ -33,13 +33,13 @@ public class FilmControllerTest {
     }
 
     @Test
-    void filmCreationTest() {
+    void filmCreationTest() throws ValidationException {
         filmController.create(film);
         Assertions.assertEquals(1, filmController.findAll().size());
     }
 
     @Test
-    void filmUpdateTest() {
+    void filmUpdateTest() throws ValidationException {
         Film newFilm = new Film(
                 1,
                 "Interstellar2",
