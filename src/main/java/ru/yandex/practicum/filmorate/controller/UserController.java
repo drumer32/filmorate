@@ -29,12 +29,12 @@ public class UserController {
 
     private Map<Integer, User> users = new HashMap<>();
 
-    @GetMapping("/user")
+    @GetMapping("/users")
     public Map<Integer, User> findAllUsers() {
         return users;
     }
 
-    @PostMapping(value = "/user")
+    @PostMapping(value = "/users")
     public User create(@Validated @RequestBody User user) {
         if (!validation(user)) {
             throw new ValidationException("Ошибка валидации. Проверьте введенные данные");
@@ -45,7 +45,7 @@ public class UserController {
         return user;
     }
 
-    @PutMapping(value = "/user")
+    @PutMapping(value = "/users")
     public User update(@Validated @RequestBody User user) {
         if (!validation(user)) {
             throw new ValidationException("Ошибка валидации. Проверьте введенные данные");
