@@ -21,10 +21,10 @@ import java.time.LocalDate;
 public class FilmController {
     private final static Logger log = LoggerFactory.getLogger(FilmController.class);
 
-    private Map<Long, Film> films = new HashMap<>();
+    private Map<Integer, Film> films = new HashMap<>();
 
     @GetMapping("/films")
-    public Map<Long, Film> findAll() {
+    public Map<Integer, Film> findAll() {
         return films;
     }
 
@@ -69,7 +69,7 @@ public class FilmController {
             return false;
         } else if (film.getDescription().length() > 200) {
             return false;
-        } else if (film.getReleaseDate().isBefore(LocalDate.of(1985, 12, 28))) {
+        } else if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             return false;
         } else if (film.getDuration() < 0) {
             return false;
