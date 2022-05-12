@@ -6,26 +6,26 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 
-
-/**
- * электронная почта не может быть пустой и должна содержать символ @;
- * логин не может быть пустым и содержать пробелы;
- * имя для отображения может быть пустым — в таком случае будет использован логин;
- * дата рождения не может быть в будущем.
- */
-
 public class UserControllerTest {
 
-    private final UserController userController = new UserController();
+    private FilmStorage filmStorage = new InMemoryFilmStorage();
+    private UserStorage userStorage = new InMemoryUserStorage();
+    private UserService userService = new UserService(userStorage);
+    private UserController userController = new UserController(userStorage, userService);
     static User user;
 
     @BeforeEach
     void generateUser() {
         user = new User(
-                1,
+                1L,
                 "email@email.com",
                 "login",
                 "name",
@@ -34,44 +34,44 @@ public class UserControllerTest {
 
     @Test
     void userCreationTest() throws ValidationException {
-        userController.create(user);
-        System.out.println(userController.findAllUsers());
-        Assertions.assertEquals(1, userController.findAllUsers().size());
+        userController.addUser(user);
+        System.out.println(userController.getAllUsers());
+        Assertions.assertEquals(1, userController.getAllUsers().size());
     }
 
     @Test
     void userUpdateTest() throws ValidationException {
         User newUser = new User(
-                1,
+                1L,
                 "email@email.com",
                 "login",
                 "nameNew",
                 LocalDate.of(1996,1,11));
-        userController.create(user);
-        userController.update(newUser);
-        Assertions.assertEquals("nameNew", userController.findAllUsers().get(1).getName());
+        userController.addUser(user);
+        userController.updateUser(newUser);
+        Assertions.assertEquals("nameNew", userController.getUserById(newUser.getUserId()).getName());
     }
 
     @Test
     void userNameValidationTest() {
         user.setLogin("name new");
-        Assertions.assertThrows(ValidationException.class, () -> userController.create(user));
+        Assertions.assertThrows(ValidationException.class, () -> userController.addUser(user));
     }
     @Test
     void userEmailValidationTest() {
         user.setEmail("");
-        Assertions.assertThrows(ValidationException.class, () -> userController.create(user));
+        Assertions.assertThrows(ValidationException.class, () -> userController.addUser(user));
     }
 
     @Test
     void userLoginValidationTest() {
         user.setLogin("");
-        Assertions.assertThrows(ValidationException.class, () -> userController.create(user));
+        Assertions.assertThrows(ValidationException.class, () -> userController.addUser(user));
     }
 
     @Test
     void userBirthdayValidationTest() {
         user.setBirthday(LocalDate.of(2030,12,12));
-        Assertions.assertThrows(ValidationException.class, () -> userController.create(user));
+        Assertions.assertThrows(ValidationException.class, () -> userController.addUser(user));
     }
 }
