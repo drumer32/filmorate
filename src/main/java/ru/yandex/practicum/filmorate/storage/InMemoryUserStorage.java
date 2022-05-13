@@ -34,7 +34,7 @@ public class InMemoryUserStorage implements UserStorage {
     public User create(User user) throws ValidationException {
         validation(user);
         if (users.containsKey(user.getId())) {
-            throw new UserAlreadyExistException(String.format("Пользователь с именем %s уже существует", user.getName()));
+            throw new UserAlreadyExistException(String.format("Пользователь с именем %s уже существует.", user.getName()));
         } else {
             user.setId(userIdStorage.generateId());
             users.put(user.getId(), user);
