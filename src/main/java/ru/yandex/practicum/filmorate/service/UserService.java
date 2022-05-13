@@ -3,9 +3,11 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -32,18 +34,22 @@ public class UserService {
         makeNotFriends(friendId, id);
     }
 
-    public Collection<Long> getFriends(Long id) {
+    public List<User> getFriends(Long id) {
         checkNullUser(id);
-        return friends.get(id);
+        return friends.getOrDefault(id, new HashSet<>()).stream()
+                .map(x -> userStorage.getUserById(x).get())
+                .collect(Collectors.toList());
     }
 
-    public Collection<Long> getCommonFriends(Long id, Long friendId) {
+    public List<User> getCommonFriends(Long id, Long friendId) {
         checkNullUser(id);
         checkNullUser(friendId);
         Set<Long> commonFriends = new TreeSet<>();
         commonFriends.addAll(friends.get(id));
         commonFriends.addAll(friends.get(friendId));
-        return commonFriends;
+        return commonFriends.stream()
+                .map(x -> userStorage.getUserById(x).get())
+                .collect(Collectors.toList());
     }
 
     private void makeFriends(Long userId, Long friendId) {
@@ -54,12 +60,16 @@ public class UserService {
 
     private void makeNotFriends(Long userId, Long friendId) {
         Set<Long> userFriends = friends.get(userId);
-        userFriends.remove(friendId);
-        friends.put(userId, userFriends);
+        if (!(userFriends == null)) {
+            userFriends.remove(friendId);
+            friends.put(userId, userFriends);
+        } else {
+            throw new NullPointerException("Друзей нет");
+        }
     }
 
     private void checkNullUser(Long id) {
-        if (userStorage.getUserById(id) == null) {
+        if (userStorage.getUserById(id).isEmpty()) {
             throw new UserNotFoundException(String.format("Не найден пользователь с id=%s", id));
         }
     }

@@ -8,19 +8,17 @@ import javax.validation.constraints.PastOrPresent;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
-import java.util.Set;
 
 @Data
 @AllArgsConstructor
 public class Film {
-    private Long id;
 
+    private Long id;
     @NotBlank
     private String name;
-
     @Size(max = 200)
+    @NotBlank
     private String description;
-
     @PastOrPresent
     private LocalDate releaseDate;
     @Positive

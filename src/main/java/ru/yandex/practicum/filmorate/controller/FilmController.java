@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import javax.validation.Valid;
 import java.util.Collection;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/films")
@@ -25,6 +26,26 @@ public class FilmController {
         this.filmService = filmService;
     }
 
+    @GetMapping
+    public Collection<Film> getAllFilms() {
+        return filmStorage.findAll();
+    }
+
+    @GetMapping("/popular")
+    public Collection<Film> getPopularFilms(
+            @RequestParam(value = "count", defaultValue = "10", required = false) Integer count) {
+        return filmService.getMostPopularFilms(count);
+    }
+
+    @GetMapping("/{id}")
+    public Film getFilmById(@PathVariable Long id) {
+        Optional<Film> film = filmStorage.getFilmById(id);
+        if (film.isEmpty()) {
+            throw new FilmNotFoundException(String.format("Не найден фильм с id=%s", id));
+        }
+        return film.get();
+    }
+
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) throws ValidationException {
         log.debug("Добавлен фильм - {}", film.getName());
@@ -35,20 +56,6 @@ public class FilmController {
     public Film updateFilm(@Valid @RequestBody Film film) throws ValidationException {
         log.debug("Обновлен фильм - {}", film.getId());
         return filmStorage.update(film);
-    }
-
-    @GetMapping
-    public Collection<Film> getAllFilms() {
-        return filmStorage.findAll();
-    }
-
-    @GetMapping("/{id}")
-    public Film getFilmById(@PathVariable Long id) {
-        Film film = filmStorage.getFilmById(id);
-        if (film == null) {
-            throw new FilmNotFoundException(String.format("Не найден фильм с id=%s", id));
-        }
-        return film;
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -63,11 +70,5 @@ public class FilmController {
             @PathVariable Long id,
             @PathVariable Long userId) {
         filmService.deleteLike(id, userId);
-    }
-
-    @GetMapping("/popular")
-    public Collection<Film> getTopFilms(
-            @RequestParam(value = "count", defaultValue = "10", required = false) Integer count) {
-        return filmService.getMostPopularFilms(count);
     }
 }

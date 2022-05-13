@@ -49,7 +49,7 @@ public class UserControllerTest {
                 LocalDate.of(1996,1,11));
         userController.addUser(user);
         userController.updateUser(newUser);
-        Assertions.assertEquals("nameNew", userController.getUserById(newUser.getUserId()).getName());
+        Assertions.assertEquals("nameNew", userController.getUserById(newUser.getId()).getName());
     }
 
     @Test

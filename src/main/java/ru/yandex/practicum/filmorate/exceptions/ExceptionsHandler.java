@@ -23,8 +23,8 @@ public class ExceptionsHandler {
     }
 
     @ExceptionHandler({UserAlreadyExistException.class, FilmAlreadyExistException.class})
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Map<String, String> handle500(RuntimeException e) {
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, String> handle409(RuntimeException e) {
         return Map.of("error", e.getMessage());
     }
 }
