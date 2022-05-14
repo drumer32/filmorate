@@ -2,7 +2,9 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exceptions.UserAlreadyExistException;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -20,28 +22,28 @@ public class UserService {
         this.userStorage = userStorage;
     }
 
-    public void addFriend(Long id, Long friendId) {
+    public void addFriend(Long id, Long friendId) throws UserNotFoundException {
         checkNullUser(id);
         checkNullUser(friendId);
         makeFriends(id, friendId);
         makeFriends(friendId, id);
     }
 
-    public void deleteFriend(Long id, Long friendId) {
+    public void deleteFriend(Long id, Long friendId) throws UserNotFoundException {
         checkNullUser(id);
         checkNullUser(friendId);
         makeNotFriends(id, friendId);
         makeNotFriends(friendId, id);
     }
 
-    public List<User> getFriends(Long id) {
+    public List<User> getFriends(Long id) throws UserNotFoundException {
         checkNullUser(id);
         return friends.getOrDefault(id, new HashSet<>()).stream()
                 .map(x -> userStorage.getUserById(x).get())
                 .collect(Collectors.toList());
     }
 
-    public List<User> getCommonFriends(Long id, Long friendId) {
+    public List<User> getCommonFriends(Long id, Long friendId) throws UserNotFoundException {
         checkNullUser(id);
         checkNullUser(friendId);
         Set<Long> commonFriends = new TreeSet<>();
@@ -68,9 +70,25 @@ public class UserService {
         }
     }
 
-    private void checkNullUser(Long id) {
+    private void checkNullUser(Long id) throws UserNotFoundException {
         if (userStorage.getUserById(id).isEmpty()) {
             throw new UserNotFoundException(String.format("Не найден пользователь с id=%s", id));
         }
+    }
+
+    public Collection<User> findAllUsers() {
+        return userStorage.findAllUsers();
+    }
+
+    public Optional<User> getUserById(Long id) {
+        return userStorage.getUserById(id);
+    }
+
+    public User create(User user) throws ValidateException, UserAlreadyExistException {
+        return userStorage.create(user);
+    }
+
+    public User update(User user) throws UserNotFoundException, ValidateException {
+        return userStorage.update(user);
     }
 }

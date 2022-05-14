@@ -12,19 +12,19 @@ public class ExceptionsHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handle400(ValidationException e) {
+    public Map<String, String> handle400(ValidateException e) {
         return Map.of("error", e.getMessage());
     }
 
     @ExceptionHandler({UserNotFoundException.class, FilmNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handle404(RuntimeException e) {
+    public Map<String, String> handle404(Exception e) {
         return Map.of("error", e.getMessage());
     }
 
     @ExceptionHandler({UserAlreadyExistException.class, FilmAlreadyExistException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
-    public Map<String, String> handle409(RuntimeException e) {
+    public Map<String, String> handle409(Exception e) {
         return Map.of("error", e.getMessage());
     }
 }
