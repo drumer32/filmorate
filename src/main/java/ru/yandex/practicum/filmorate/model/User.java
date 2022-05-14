@@ -7,20 +7,13 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Past;
 import java.time.LocalDate;
+import java.util.Objects;
 
-/**
- * целочисленный идентификатор;
- * электронная почта;
- * логин пользователя;
- * имя для отображения;
- * дата рождения.
- */
 @Data
 @AllArgsConstructor
 public class User {
 
-    private int userId;
-
+    private Long id;
     @Email
     private String email;
     @NotBlank
@@ -28,4 +21,17 @@ public class User {
     private String name;
     @Past
     private LocalDate birthday;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(email, user.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(email);
+    }
 }

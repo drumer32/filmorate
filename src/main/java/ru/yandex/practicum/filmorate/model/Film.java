@@ -9,24 +9,16 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
 
-/**
- * целочисленный идентификатор;
- * название;
- * описание;
- * дата релиза;
- * продолжительность фильма.
- */
 @Data
 @AllArgsConstructor
 public class Film {
-    private int id;
 
+    private Long id;
     @NotBlank
     private String name;
-
     @Size(max = 200)
+    @NotBlank
     private String description;
-
     @PastOrPresent
     private LocalDate releaseDate;
     @Positive
