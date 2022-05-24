@@ -46,12 +46,12 @@ public class UserService {
     public List<User> getCommonFriends(Long id, Long friendId) throws UserNotFoundException {
         checkNullUser(id);
         checkNullUser(friendId);
-        Set<Long> commonFriends = new TreeSet<>();
-        commonFriends.addAll(friends.get(id));
-        commonFriends.addAll(friends.get(friendId));
-        return commonFriends.stream()
-                .map(x -> userStorage.getUserById(x).get())
-                .collect(Collectors.toList());
+        List<User> result = new ArrayList<>(getFriends(id));
+        List<User> result2 = new ArrayList<>(getFriends(friendId));
+        Set<User> all = new HashSet<>(result);
+        all.addAll(result2);
+        System.out.println(all.size());
+        return new ArrayList<>(all);
     }
 
     private void makeFriends(Long userId, Long friendId) {
