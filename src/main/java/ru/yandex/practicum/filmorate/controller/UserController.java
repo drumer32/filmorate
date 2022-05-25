@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -38,11 +39,11 @@ public class UserController {
 
     @GetMapping("/{id}")
     public User getUserById(@PathVariable Long id) throws UserNotFoundException {
-        Optional<User> user = userService.getUserById(id);
-        if (user.isEmpty()) {
+        User user = userService.getUserById(id);
+        if (user == null) {
             throw new UserNotFoundException(String.format("Не найден пользователь с id=%s", id));
         }
-        return user.get();
+        return user;
     }
 
     @GetMapping("/{id}/friends")
@@ -58,7 +59,7 @@ public class UserController {
     }
 
     @PostMapping
-    public User addUser(@Valid @RequestBody User user) throws ValidateException, UserAlreadyExistException {
+    public User addUser(@Validated @RequestBody User user) throws ValidateException, UserAlreadyExistException {
         log.debug("Запрос на добавление пользователя - {}", user.getLogin());
         return userService.create(user);
     }

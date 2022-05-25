@@ -16,5 +16,5 @@ public interface UserStorage {
 
     User update(User user) throws ValidateException, UserNotFoundException;
 
-    Optional<User> getUserById(Long id);
+    User getUserById(Long id);
 }

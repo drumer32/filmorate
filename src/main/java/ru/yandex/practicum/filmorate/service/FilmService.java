@@ -79,7 +79,7 @@ public class FilmService {
     }
 
     private void checkNullUser(Long id) throws UserNotFoundException {
-        if (userStorage.getUserById(id).isEmpty()) {
+        if (userStorage.getUserById(id) == null) {
             throw new UserNotFoundException(String.format("Не найден пользователь с id=%s", id));
         }
     }
