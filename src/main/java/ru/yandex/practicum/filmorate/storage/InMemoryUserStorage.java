@@ -27,13 +27,17 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Optional<User> getUserById(Long id) {
-        return Optional.ofNullable(users.get(id));
+    public User getUserById(Long id) {
+        return (users.get(id));
     }
 
     @Override
     public User create(User user) throws ValidateException, UserAlreadyExistException {
         validate(user);
+        if (!StringUtils.hasText(user.getName())) {
+            user.setName(user.getLogin());
+            log.debug("Имя не должно быть пустым - {}", user.getName());
+        }
         if (users.containsKey(user.getId())) {
             throw new UserAlreadyExistException(String.format("Пользователь с именем %s уже существует.", user.getName()));
         } else {
@@ -57,11 +61,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     private void validate (User user) throws ValidateException {
-        if (!StringUtils.hasText(user.getName())) {
-            user.setName(user.getLogin());
-            log.debug("Имя не должно быть пустым - {}", user.getName());
-            throw new ValidateException("Имя не должно быть пустым");
-        } else if (!user.getEmail().contains("@")) {
+       if (!user.getEmail().contains("@")) {
             log.debug("Адрес email веден некорректно - {}", user.getName());
             throw new ValidateException("Адрес email веден некорректно");
         } else if (user.getLogin().isBlank() || user.getLogin().contains(" ")) {
