@@ -2,9 +2,12 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exceptions.FilmAlreadyExistException;
 import ru.yandex.practicum.filmorate.exceptions.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
@@ -26,7 +29,7 @@ public class FilmService {
         this.userStorage = userStorage;
     }
 
-    public void addLike(Long filmId, Long userId) {
+    public void addLike(Long filmId, Long userId) throws FilmNotFoundException, UserNotFoundException {
         checkNullFilm(filmId);
         checkNullUser(userId);
         Set<Long> filmLikes = allLikes.getOrDefault(filmId, new HashSet<>());
@@ -35,7 +38,7 @@ public class FilmService {
         log.info((allLikes.keySet() + " Лайк добавлен"));
     }
 
-    public void deleteLike(Long filmId, Long userId) {
+    public void deleteLike(Long filmId, Long userId) throws UserNotFoundException, FilmNotFoundException {
         checkNullFilm(filmId);
         checkNullUser(userId);
         Set<Long> filmLikes = allLikes.get(filmId);
@@ -75,15 +78,31 @@ public class FilmService {
                 );
     }
 
-    private void checkNullUser(Long id) {
-        if (userStorage.getUserById(id).isEmpty()) {
+    private void checkNullUser(Long id) throws UserNotFoundException {
+        if (userStorage.getUserById(id) == null) {
             throw new UserNotFoundException(String.format("Не найден пользователь с id=%s", id));
         }
     }
 
-    private void checkNullFilm(Long id) {
+    private void checkNullFilm(Long id) throws FilmNotFoundException {
         if (filmStorage.getFilmById(id).isEmpty()) {
             throw new FilmNotFoundException(String.format("Не найден фильм с id=%s", id));
         }
+    }
+
+    public Film update(Film film) throws FilmNotFoundException, ValidateException {
+        return filmStorage.update(film);
+    }
+
+    public Film create(Film film) throws ValidateException, FilmAlreadyExistException {
+        return filmStorage.create(film);
+    }
+
+    public Collection<Film> findAll() {
+        return filmStorage.findAll();
+    }
+
+    public Optional<Film> getFilmById(Long id) {
+        return filmStorage.getFilmById(id);
     }
 }
