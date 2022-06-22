@@ -6,26 +6,25 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 @RestControllerAdvice
 public class ExceptionsHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    Exception handle400(final Exception e) {
-        return e;
+    public Map<String, String> handle400(ValidateException e) {
+        return Map.of("error", e.getMessage());
     }
 
-    @ExceptionHandler({UserNotFoundException.class, FilmNotFoundException.class, NoSuchElementException.class})
+    @ExceptionHandler({UserNotFoundException.class, FilmNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    Exception handle404(final Exception e) {
-        return e;
+    public Map<String, String> handle404(Exception e) {
+        return Map.of("error", e.getMessage());
     }
 
     @ExceptionHandler({UserAlreadyExistException.class, FilmAlreadyExistException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
-    Exception handle409(final Exception e) {
-        return e;
+    public Map<String, String> handle409(Exception e) {
+        return Map.of("error", e.getMessage());
     }
 }

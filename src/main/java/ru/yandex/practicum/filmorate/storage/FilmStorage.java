@@ -1,23 +1,19 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
+import ru.yandex.practicum.filmorate.exceptions.FilmAlreadyExistException;
+import ru.yandex.practicum.filmorate.exceptions.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Like;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public interface FilmStorage {
     Collection<Film> findAll();
 
-    Film getFilmById(Long id);
+    Optional<Film> getFilmById(Long id);
 
-    void createFilm(Film film) throws ValidationException;
+    Film create(Film film) throws ValidateException, FilmAlreadyExistException;
 
-    void updateFilm(Film film) throws ValidationException;
-
-    void deleteFilm(Film film);
-
-    void saveLike(Like like);
-
-    void deleteLike(Like like);
+    Film update(Film film) throws ValidateException, FilmNotFoundException;
 }
