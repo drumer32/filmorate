@@ -10,9 +10,11 @@ public interface UserStorage {
 
     Collection<User> findAllUsers();
 
-    User create(User user) throws ValidationException;
+    void create(User user) throws ValidationException;
 
-    User update(User user) throws ValidationException;
+    void update(User user) throws ValidationException;
 
-    Optional<User> getUserById(Long id);
+    User getUserById(Long id);
+
+    void deleteUser(User user);
 }

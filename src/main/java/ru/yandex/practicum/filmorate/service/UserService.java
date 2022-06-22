@@ -3,7 +3,10 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
+import ru.yandex.practicum.filmorate.model.Friendship;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.*;
@@ -11,65 +14,83 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserService {
-    private final Map<Long, Set<Long>> friends = new HashMap<>();
-
     private final UserStorage userStorage;
+    private final FriendshipStorage friendshipStorage;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
-        this.userStorage = userStorage;
+    public UserService(UserStorage databaseUserStorage, FriendshipStorage databaseFriendshipStorage) {
+        this.userStorage = databaseUserStorage;
+        this.friendshipStorage = databaseFriendshipStorage;
     }
 
-    public void addFriend(Long id, Long friendId) {
+    public void addFriend(Long id, Long friendId) throws UserNotFoundException {
         checkNullUser(id);
         checkNullUser(friendId);
-        makeFriends(id, friendId);
-        makeFriends(friendId, id);
+        friendshipStorage.save(Friendship
+                .builder()
+                .user(getUserById(id))
+                .friend(getUserById(friendId))
+                .build());
     }
 
-    public void deleteFriend(Long id, Long friendId) {
+    public void deleteFriend(Long id, Long friendId) throws UserNotFoundException {
         checkNullUser(id);
         checkNullUser(friendId);
-        makeNotFriends(id, friendId);
-        makeNotFriends(friendId, id);
+        friendshipStorage.delete(Friendship
+                .builder()
+                .user(getUserById(id))
+                .friend(getUserById(friendId))
+                .build());
     }
 
-    public List<User> getFriends(Long id) {
+    public List<User> getFriends(Long id) throws UserNotFoundException {
         checkNullUser(id);
-        return friends.getOrDefault(id, new HashSet<>()).stream()
-                .map(x -> userStorage.getUserById(x).get())
+        return friendshipStorage.getFriendsIds(getUserById(id).getId())
+                .stream()
+                .map(userStorage::getUserById)
                 .collect(Collectors.toList());
     }
 
-    public List<User> getCommonFriends(Long id, Long friendId) {
+    public List<User> getCommonFriends(Long id, Long friendId) throws UserNotFoundException {
         checkNullUser(id);
         checkNullUser(friendId);
-        Set<Long> commonFriends = new TreeSet<>();
-        commonFriends.addAll(friends.get(id));
-        commonFriends.addAll(friends.get(friendId));
-        return commonFriends.stream()
-                .map(x -> userStorage.getUserById(x).get())
+
+        Set<Long> intersection = new HashSet<>(friendshipStorage.getFriendsIds(id));
+        intersection.retainAll(friendshipStorage.getFriendsIds(friendId));
+
+        return intersection
+                .stream()
+                .map(userStorage::getUserById)
                 .collect(Collectors.toList());
     }
 
-    private void makeFriends(Long userId, Long friendId) {
-        Set<Long> userFriends = friends.getOrDefault(userId, new HashSet<>());
-        userFriends.add(friendId);
-        friends.put(userId, userFriends);
+    public Collection<User> findAllUsers() {
+        return userStorage.findAllUsers();
     }
 
-    private void makeNotFriends(Long userId, Long friendId) {
-        Set<Long> userFriends = friends.get(userId);
-        if (!(userFriends == null)) {
-            userFriends.remove(friendId);
-            friends.put(userId, userFriends);
-        } else {
-            throw new NullPointerException("Друзей нет");
-        }
+    public User getUserById(Long id) throws UserNotFoundException {
+        User user =  userStorage.getUserById(id);
+        if (user == null) {
+            throw new UserNotFoundException("User not found");
+        } else return user;
     }
 
-    private void checkNullUser(Long id) {
-        if (userStorage.getUserById(id).isEmpty()) {
+    public void create(User user) throws ValidationException {
+        userStorage.create(user);
+    }
+
+    public void update(User newUser) throws ValidationException, UserNotFoundException {
+        final User user = getUserById(newUser.getId());
+        if (newUser.equals(user)) return;
+        userStorage.update(newUser);
+    }
+
+    public void deleteUser(Long id) throws UserNotFoundException {
+        userStorage.deleteUser(getUserById(id));
+    }
+
+    private void checkNullUser(Long id) throws UserNotFoundException {
+        if (userStorage.getUserById(id) == null) {
             throw new UserNotFoundException(String.format("Не найден пользователь с id=%s", id));
         }
     }

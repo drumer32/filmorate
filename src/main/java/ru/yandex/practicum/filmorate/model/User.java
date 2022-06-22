@@ -1,37 +1,29 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Builder;
+import lombok.Value;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Past;
+import javax.validation.constraints.*;
 import java.time.LocalDate;
-import java.util.Objects;
 
-@Data
-@AllArgsConstructor
+@Value
+@Builder(toBuilder = true)
 public class User {
+    Long id;
 
-    private Long id;
     @Email
-    private String email;
     @NotBlank
-    private String login;
-    private String name;
+    String email;
+
+    @Pattern(regexp = "^\\w+$")
+    @NotBlank
+    String login;
+
+    String name;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @NotNull
     @Past
-    private LocalDate birthday;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        return Objects.equals(email, user.email);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(email);
-    }
+    LocalDate birthday;
 }
