@@ -2,107 +2,89 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exceptions.FilmAlreadyExistException;
 import ru.yandex.practicum.filmorate.exceptions.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
-import ru.yandex.practicum.filmorate.exceptions.ValidateException;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Like;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
-
+import ru.yandex.practicum.filmorate.storage.LikeStorage;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class FilmService {
-    private final Map<Long, Set<Long>> allLikes = new HashMap<>(); // Film Id -- Set из Id тех, кто лайкнул
-
     private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
+    private final UserService userService;
+    private final LikeStorage likeStorage;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
+    FilmService(FilmStorage databaseFilmStorage, LikeStorage databaseLikeStorage,
+                UserService userService) {
+        this.filmStorage = databaseFilmStorage;
+        this.userService = userService;
+        this.likeStorage = databaseLikeStorage;
     }
 
-    public void addLike(Long filmId, Long userId) throws FilmNotFoundException, UserNotFoundException {
+    public void addLike(Long filmId, Long userId) throws UserNotFoundException, FilmNotFoundException {
         checkNullFilm(filmId);
         checkNullUser(userId);
-        Set<Long> filmLikes = allLikes.getOrDefault(filmId, new HashSet<>());
-        filmLikes.add(userId);
-        allLikes.put(filmId, filmLikes);
-        log.info((allLikes.keySet() + " Лайк добавлен"));
+        likeStorage.saveLike(Like
+                .builder()
+                .film(filmStorage.getFilmById(filmId))
+                .user(userService.getUserById(userId))
+                .build());
     }
 
     public void deleteLike(Long filmId, Long userId) throws UserNotFoundException, FilmNotFoundException {
         checkNullFilm(filmId);
         checkNullUser(userId);
-        Set<Long> filmLikes = allLikes.get(filmId);
-        if (!(filmLikes == null)) {
-            filmLikes.remove(userId);
-            if (filmLikes.size() == 0) {
-                allLikes.remove(filmId); // Если у фильма нет лайков, то он удаляется из хит-парада :)
-            } else {
-                allLikes.put(filmId, filmLikes);
-                log.info(allLikes.keySet() + " Лайк удален");
-            }
-        } else {
-            throw new NullPointerException("У фильма нет лайков");
-        }
-    }
-
-    public Collection<Film> getMostPopularFilms(Integer count) {
-        List<Film> all = new ArrayList<>(filmStorage.findAll());
-        List<Film> liked = new ArrayList<>(sortedPopularFilms(count));
-        List<Film> sorted = new ArrayList<>(liked);
-        for (Film film : all) {
-            if (!(liked.contains(film.getId()))) {
-                sorted.add(film);
-            }
-        }
-        return sorted.stream()
-                .limit(count)
-                .collect(Collectors.toList());
+        likeStorage.deleteLike(Like
+                .builder()
+                .film(filmStorage.getFilmById(filmId))
+                .user(userService.getUserById(userId))
+                .build());
     }
 
     public Collection<Film> sortedPopularFilms(Integer count) {
-        return allLikes.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.comparing(x -> 1 - x.size())))
-                .limit(count)
-                .map(x -> filmStorage.getFilmById(x.getKey()).get())
-                .collect(Collectors.toList()
-                );
+        return likeStorage.getPopularFilms(count != null ? count : 10);
     }
 
     private void checkNullUser(Long id) throws UserNotFoundException {
-        if (userStorage.getUserById(id) == null) {
+        if (userService.getUserById(id) == null) {
             throw new UserNotFoundException(String.format("Не найден пользователь с id=%s", id));
         }
     }
 
     private void checkNullFilm(Long id) throws FilmNotFoundException {
-        if (filmStorage.getFilmById(id).isEmpty()) {
+        if (filmStorage.getFilmById(id) == null) {
             throw new FilmNotFoundException(String.format("Не найден фильм с id=%s", id));
         }
     }
 
-    public Film update(Film film) throws FilmNotFoundException, ValidateException {
-        return filmStorage.update(film);
+    public Film createFilm(Film film) throws ValidationException {
+        return filmStorage.createFilm(film);
     }
 
-    public Film create(Film film) throws ValidateException, FilmAlreadyExistException {
-        return filmStorage.create(film);
-    }
-
-    public Collection<Film> findAll() {
+    public Collection<Film> findAllFilms() {
         return filmStorage.findAll();
     }
 
-    public Optional<Film> getFilmById(Long id) {
-        return filmStorage.getFilmById(id);
+    public Film getFilmById(Long id) throws FilmNotFoundException {
+        final Film film = filmStorage.getFilmById(id);
+        if (film == null) throw new FilmNotFoundException(String.format("Не найден фильм с id=%s", id));
+        return film;
     }
+
+    public Film updateFilm(Film newFilm) throws ValidationException, FilmNotFoundException {
+        final Film oldFilm = getFilmById(newFilm.getId());
+        if (oldFilm.equals(newFilm)) return newFilm;
+        return filmStorage.updateFilm(newFilm);
+    }
+
+    public void deleteFilm(Film film) {
+        filmStorage.deleteFilm(film);
+    }
+
 }

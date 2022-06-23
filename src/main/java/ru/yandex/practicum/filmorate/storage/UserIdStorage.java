@@ -1,9 +1,9 @@
 package ru.yandex.practicum.filmorate.storage;
 
 public class UserIdStorage {
-    static long id = 0;
+    static Long id = 0L;
 
-    public long generateId() {
+    public static Long generateId() {
         return ++id;
     }
 }

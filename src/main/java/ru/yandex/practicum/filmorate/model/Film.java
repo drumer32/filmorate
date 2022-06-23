@@ -1,26 +1,32 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.*;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.PastOrPresent;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.Set;
 
-@Data
-@AllArgsConstructor
+@Value
+@Builder(toBuilder = true)
 public class Film {
+    Long id;
 
-    private Long id;
     @NotBlank
-    private String name;
+    String name;
+
+    @NotBlank
     @Size(max = 200)
-    @NotBlank
-    private String description;
-    @PastOrPresent
-    private LocalDate releaseDate;
-    @Positive
-    private int duration;
+    String description;
+
+    @Min(0)
+    Integer duration;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    LocalDate releaseDate;
+
+    @NonNull
+    RatingMPA mpa;
+
+    Set<Genre> genres;
 }

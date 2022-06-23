@@ -1,49 +1,59 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import ru.yandex.practicum.filmorate.exceptions.UserAlreadyExistException;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
-import ru.yandex.practicum.filmorate.exceptions.ValidateException;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
 
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.UserIdStorage;
 
 import javax.validation.Valid;
 
-@RestController
-@RequestMapping("/users")
 @Slf4j
+@Validated
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/users")
 public class UserController {
-
     private final UserService userService;
 
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
+    @PostMapping
+    public User addUser(@Validated @RequestBody User user) throws ValidationException {
+        log.debug("Запрос на добавление пользователя - {}", user.getLogin());
+        return userService.create(user);
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(
+            @PathVariable Long id,
+            @PathVariable Long friendId) throws UserNotFoundException {
+        userService.addFriend(id, friendId);
+    }
+
+    @PutMapping
+    public User updateUser(@Validated @RequestBody User user) throws ValidationException, UserNotFoundException {
+        log.debug("Запрос на обновление пользователя - {}", user.getLogin());
+        return userService.update(user);
+    }
+
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable Long id) throws UserNotFoundException {
+        return userService.getUserById(id);
     }
 
     @GetMapping
     public Collection<User> getAllUsers() {
         return userService.findAllUsers();
-    }
-
-    @GetMapping("/{id}")
-    public User getUserById(@PathVariable Long id) throws UserNotFoundException {
-        User user = userService.getUserById(id);
-        if (user == null) {
-            throw new UserNotFoundException(String.format("Не найден пользователь с id=%s", id));
-        }
-        return user;
     }
 
     @GetMapping("/{id}/friends")
@@ -58,23 +68,9 @@ public class UserController {
         return userService.getCommonFriends(id, otherId);
     }
 
-    @PostMapping
-    public User addUser(@Validated @RequestBody User user) throws ValidateException, UserAlreadyExistException {
-        log.debug("Запрос на добавление пользователя - {}", user.getLogin());
-        return userService.create(user);
-    }
-
-    @PutMapping
-    public User updateUser(@Valid @RequestBody User user) throws ValidateException, UserNotFoundException {
-        log.debug("Запрос на обновление пользователя - {}", user.getLogin());
-        return userService.update(user);
-    }
-
-    @PutMapping("/{id}/friends/{friendId}")
-    public void addFriend(
-            @PathVariable Long id,
-            @PathVariable Long friendId) throws UserNotFoundException {
-        userService.addFriend(id, friendId);
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable Long id) throws UserNotFoundException {
+        userService.deleteUser(id);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
