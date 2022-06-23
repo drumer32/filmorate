@@ -11,9 +11,9 @@ public interface FilmStorage {
 
     Film getFilmById(Long id);
 
-    void createFilm(Film film) throws ValidationException;
+    Film createFilm(Film film) throws ValidationException;
 
-    void updateFilm(Film film) throws ValidationException;
+    Film updateFilm(Film film) throws ValidationException;
 
     void deleteFilm(Film film);
 

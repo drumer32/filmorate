@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Like;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
+import ru.yandex.practicum.filmorate.storage.FilmIdStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.LikeStorage;
 
@@ -41,7 +42,13 @@ public class DatabaseFilmStorage implements FilmStorage, LikeStorage {
     }
 
     @Override
-    public void createFilm(Film film) {
+    public Film createFilm(Film film) {
+        if (film.getId() == null) {
+            film = film.toBuilder()
+                    .id(FilmIdStorage.generateId())
+                    .build();
+        }
+
         final String sql = "INSERT INTO films (film_id, name, description, release_date, duration, mpa_id)"
                 + " VALUES (?, ?, ?, ?, ?, ?)";
 
@@ -52,12 +59,15 @@ public class DatabaseFilmStorage implements FilmStorage, LikeStorage {
 
         if (filmGenres != null) {
             final String genreSaveSql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
-            filmGenres.forEach(x -> jdbcTemplate.update(genreSaveSql, film.getId(), x.getId()));
+            Film finalFilm = film;
+            filmGenres.forEach(x -> jdbcTemplate.update(genreSaveSql, finalFilm.getId(), x.getId()));
         }
+
+        return film;
     }
 
     @Override
-    public void updateFilm(Film film) {
+    public Film updateFilm(Film film) {
         final String sql = "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ?, mpa_id = ?"
                 + " WHERE film_id = ?";
 
@@ -73,6 +83,8 @@ public class DatabaseFilmStorage implements FilmStorage, LikeStorage {
             final String genreSaveSql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
             filmGenres.forEach(x -> jdbcTemplate.update(genreSaveSql, film.getId(), x.getId()));
         }
+
+        return film;
     }
 
     @Override

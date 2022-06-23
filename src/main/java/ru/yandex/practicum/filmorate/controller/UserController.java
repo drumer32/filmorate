@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,7 +16,6 @@ import java.util.*;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.UserIdStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import javax.validation.Valid;
 
@@ -30,11 +28,9 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public User addUser(@Valid @RequestBody User user) throws ValidationException {
-        final User newUser = validation(user);
-        log.debug("Запрос на добавление пользователя - {}", newUser.getLogin());
-        userService.create(newUser);
-        return newUser;
+    public User addUser(@Validated @RequestBody User user) throws ValidationException {
+        log.debug("Запрос на добавление пользователя - {}", user.getLogin());
+        return userService.create(user);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
@@ -45,17 +41,14 @@ public class UserController {
     }
 
     @PutMapping
-    public User updateUser(@Valid @RequestBody User user) throws ValidationException, UserNotFoundException {
-        final User newUser = validation(user);
-        log.debug("Запрос на обновление пользователя - {}", newUser.getLogin());
-        userService.update(newUser);
-        return newUser;
+    public User updateUser(@Validated @RequestBody User user) throws ValidationException, UserNotFoundException {
+        log.debug("Запрос на обновление пользователя - {}", user.getLogin());
+        return userService.update(user);
     }
 
     @GetMapping("/{id}")
     public User getUserById(@PathVariable Long id) throws UserNotFoundException {
-        User user = userService.getUserById(id);
-        return user;
+        return userService.getUserById(id);
     }
 
     @GetMapping
@@ -85,17 +78,6 @@ public class UserController {
             @PathVariable Long id,
             @PathVariable Long friendId) throws UserNotFoundException {
         userService.deleteFriend(id, friendId);
-    }
-
-    private User validation(User user) {
-        if (user.getId() == null) {
-            user = user.toBuilder().id(UserIdStorage.generateId()).build();
-        }
-
-        if (user.getName() == null || user.getName().equals("")) {
-            user = user.toBuilder().name(user.getLogin()).build();
-        }
-        return user;
     }
 }
 

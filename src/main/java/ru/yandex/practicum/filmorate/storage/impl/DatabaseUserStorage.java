@@ -4,14 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserIdStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.*;
 
 @Component
@@ -19,7 +17,6 @@ import java.util.*;
 @RequiredArgsConstructor
 public class DatabaseUserStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
-
 
     @Override
     public Collection<User> findAllUsers() {
@@ -35,17 +32,29 @@ public class DatabaseUserStorage implements UserStorage {
     }
 
     @Override
-    public void create(User newUser) throws ValidationException {
+    public User create(User newUser) {
+        if (newUser.getId() == null) {
+            newUser = newUser.toBuilder()
+                    .id(UserIdStorage.generateId())
+                    .build();
+        }
+        newUser = convertLoginToName(newUser);
+
         final String sql = "INSERT INTO users (user_id, email, login, name, birthday) VALUES (?, ?, ?, ?, ?)";
+
         jdbcTemplate.update(sql, newUser.getId(), newUser.getEmail(), newUser.getLogin(), newUser.getName(),
                 newUser.getBirthday());
+
+        return newUser;
     }
 
     @Override
-    public void update(User user) throws ValidationException {
+    public User update(User user) {
         final String sql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE user_id = ?";
         jdbcTemplate.update(sql, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId());
+        return user;
     }
+
 
     @Override
     public void deleteUser(User user) {
@@ -61,5 +70,14 @@ public class DatabaseUserStorage implements UserStorage {
                 .name(rs.getString("name"))
                 .birthday(rs.getDate("birthday").toLocalDate())
                 .build();
+    }
+
+    private User convertLoginToName(User user) {
+        if (user.getName() == null || user.getName().equals("")) {
+            user = user.toBuilder()
+                    .name(user.getLogin())
+                    .build();
+        }
+        return user;
     }
 }

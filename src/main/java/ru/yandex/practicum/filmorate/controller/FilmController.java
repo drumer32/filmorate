@@ -9,11 +9,8 @@ import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.FilmIdStorage;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
 import java.util.Collection;
 
 @Slf4j
@@ -26,10 +23,8 @@ public class FilmController {
 
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) throws ValidationException {
-        final Film newFilm = validate(film);
-        log.debug("Добавлен фильм - {}", newFilm.getName());
-        filmService.createFilm(newFilm);
-        return newFilm;
+        log.debug("Добавлен фильм - {}", film.getName());
+        return filmService.createFilm(film);
     }
 
     @GetMapping
@@ -39,19 +34,13 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public Film getFilmById(@PathVariable Long id) throws FilmNotFoundException {
-        Film film = filmService.getFilmById(id);
-        if (film == null) {
-            throw new FilmNotFoundException(String.format("Не найден фильм с id=%s", id));
-        }
-        return film;
+        return filmService.getFilmById(id);
     }
 
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) throws ValidationException, FilmNotFoundException {
-        final Film newFilm = validate(film);
-        log.debug("Обновлен фильм - {}", newFilm.getId());
-        filmService.updateFilm(newFilm);
-        return newFilm;
+        log.debug("Обновлен фильм - {}", film.getId());
+        return filmService.updateFilm(film);
     }
 
     @GetMapping("/popular")
@@ -79,15 +68,4 @@ public class FilmController {
         filmService.deleteFilm(getFilmById(id));
     }
 
-    public static Film validate(Film film) throws ValidationException {
-        if (film.getId() == null) {
-            film = film.toBuilder().id(FilmIdStorage.generateId()).build();
-        }
-
-        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            throw new ValidationException("release date can't be before the cinema day.");
-        }
-
-        return film;
-    }
 }

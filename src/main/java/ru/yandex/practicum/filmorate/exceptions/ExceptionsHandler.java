@@ -1,18 +1,20 @@
 package ru.yandex.practicum.filmorate.exceptions;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestControllerAdvice
 public class ExceptionsHandler {
 
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({ValidationException.class})
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "validation failed")
     Exception handle400(final Exception e) {
         return e;
     }

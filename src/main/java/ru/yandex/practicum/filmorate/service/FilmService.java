@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Like;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.LikeStorage;
-
 import java.util.*;
 
 @Service
@@ -64,8 +63,8 @@ public class FilmService {
         }
     }
 
-    public void createFilm(Film film) throws ValidationException {
-        filmStorage.createFilm(film);
+    public Film createFilm(Film film) throws ValidationException {
+        return filmStorage.createFilm(film);
     }
 
     public Collection<Film> findAllFilms() {
@@ -74,17 +73,18 @@ public class FilmService {
 
     public Film getFilmById(Long id) throws FilmNotFoundException {
         final Film film = filmStorage.getFilmById(id);
-        if (film == null) throw new FilmNotFoundException("Фильм не найден");
+        if (film == null) throw new FilmNotFoundException(String.format("Не найден фильм с id=%s", id));
         return film;
     }
 
-    public void updateFilm(Film newFilm) throws ValidationException, FilmNotFoundException {
-        final Film film = getFilmById(newFilm.getId());
-        if (newFilm.equals(film)) return;
-        filmStorage.updateFilm(newFilm);
+    public Film updateFilm(Film newFilm) throws ValidationException, FilmNotFoundException {
+        final Film oldFilm = getFilmById(newFilm.getId());
+        if (oldFilm.equals(newFilm)) return newFilm;
+        return filmStorage.updateFilm(newFilm);
     }
 
     public void deleteFilm(Film film) {
         filmStorage.deleteFilm(film);
     }
+
 }

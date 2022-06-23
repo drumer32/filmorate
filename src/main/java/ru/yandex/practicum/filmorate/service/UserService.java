@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Friendship;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FriendshipStorage;
+import ru.yandex.practicum.filmorate.storage.UserIdStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.*;
@@ -75,14 +76,16 @@ public class UserService {
         } else return user;
     }
 
-    public void create(User user) throws ValidationException {
-        userStorage.create(user);
+    public User create(User user) throws ValidationException {
+        return userStorage.create(user);
     }
 
-    public void update(User newUser) throws ValidationException, UserNotFoundException {
-        final User user = getUserById(newUser.getId());
-        if (newUser.equals(user)) return;
-        userStorage.update(newUser);
+    public User update(User newUser) throws ValidationException, UserNotFoundException {
+        final User oldUser = getUserById(newUser.getId());
+        if (oldUser.equals(newUser)) {
+            return newUser;
+        }
+        return userStorage.update(newUser);
     }
 
     public void deleteUser(Long id) throws UserNotFoundException {
